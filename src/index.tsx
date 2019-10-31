@@ -146,13 +146,13 @@ namespace ProcessorUsage {
       const oldCurrentProcessor = this._currentProcessor;
       const oldProcessorLimit = this._processorLimit;
 
-      if (value === null) {
-        this._metricsAvailable = false;
-        this._currentProcessor = 0;
-        this._processorLimit = null;
+      if (!value || value.cpu_percent === undefined) {
+          this._metricsAvailable = false;
+          this._currentProcessor = 0;
+          this._processorLimit = null;
       }
       else {
-        const cpuPercent = value.cpu_percent;
+        const cpuPercent = +value.cpu_percent.toFixed(1);
         const cpuCount = value.cpu_count;
         const processorLimit = value.limits.cpu
           ? value.limits.cpu.cpu
