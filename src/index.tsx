@@ -48,10 +48,10 @@ class ProcessorUsage extends VDomRenderer<ProcessorUsage.Model> {
     }
     let text: string;
     if (this.model.processorLimit === null) {
-      text = `CPU: ${this.model.currentProcessor}%`;
+      text = `CPU: ${this.model.currentProcessor}%, # of CPUs: ${this.model.processorCount}`;
     }
     else {
-      text = `CPU: ${this.model.currentProcessor}% / ${this.model.processorLimit}%`;
+      text = `CPU: ${this.model.currentProcessor}% / ${this.model.processorLimit}%, # of CPUs: ${this.model.processorCount}`;
     }
     return <TextItem title="Current processor usage" source={text} />;
   }
@@ -115,6 +115,13 @@ namespace ProcessorUsage {
     }
 
     /**
+     * The number of processors as reported by psutil
+     */
+    get processorCount(): number {
+      return this._processorCount;
+    }
+
+    /**
      * The current processor limit, or null if not specified.
      */
     get processorLimit(): number | null {
@@ -146,12 +153,14 @@ namespace ProcessorUsage {
       }
       else {
         const cpuPercent = value.cpu_percent;
-        const processorLimit = value.limits.processor
-          ? value.limits.processor.percent
+        const cpuCount = value.cpu_count;
+        const processorLimit = value.limits.cpu
+          ? value.limits.cpu.cpu
           : null;
         this._metricsAvailable = true;
         this._currentProcessor = cpuPercent;
         this._processorLimit = processorLimit;
+        this._processorCount = cpuCount;
       }
 
       if (
@@ -164,6 +173,7 @@ namespace ProcessorUsage {
     }
 
     private _currentProcessor: number = 0;
+    private _processorCount: number = 1;
     private _processorLimit: number | null = null;
     private _metricsAvailable: boolean = false;
     private _poll: Poll<Private.IMetricRequestResult>;
@@ -209,15 +219,13 @@ namespace Private {
         rss: number;
         warn?: number;
       };
-      processor?: {
-        percent: number;
+      cpu?: {
+        cpu: number;
         warn?: number;
       }
     };
-    total_mem: number;
-    used_mem: number;
-    num_users: number;
-    cpu_percent: number;
+    cpu_percent?: number;
+    cpu_count?: number;
   }
 
   /**
